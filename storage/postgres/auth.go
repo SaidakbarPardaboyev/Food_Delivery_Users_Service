@@ -34,26 +34,24 @@ func (a *authRepo) Create(ctx context.Context, request *pb.CreateUser) (*pb.User
 	)
 
 	query = `insert into users (
-		email,
-		password_hash,
+		phone_number,
 		full_name,
 		created_at
-	) values ($1, $2, $3, $4) returning 
-		id,
-		email,
+	) values ($1, $2, $3) returning 
+	 	id,
+		phone_number,
 		full_name,
 		user_role,
 		created_at
 	`
 
 	if err = a.db.QueryRow(ctx, query,
-		request.Email,
-		request.Password,
+		request.PhoneNumber,
 		request.FullName,
 		timeNow).
 		Scan(
 			&user.Id,
-			&user.Email,
+			&user.PhoneNumber,
 			&user.FullName,
 			&user.UserRole,
 			&createdAt,
@@ -67,10 +65,10 @@ func (a *authRepo) Create(ctx context.Context, request *pb.CreateUser) (*pb.User
 	return &user, nil
 }
 
-func (a *authRepo) GetByEmail(ctx context.Context, request *pb.Email) (*pb.UserByEmail, error) {
+func (a *authRepo) GetByPhone(ctx context.Context, request *pb.Phone) (*pb.User, error) {
 
 	var (
-		user      = pb.UserByEmail{}
+		user      = pb.User{}
 		query     string
 		err       error
 		createdAt time.Time
@@ -79,23 +77,22 @@ func (a *authRepo) GetByEmail(ctx context.Context, request *pb.Email) (*pb.UserB
 	query = `
 	select
 		id,
-		email,
+		phone_number,
 		full_name,
-		password_hash,
 		user_role,
-		created_at
+		created_at,
+		updated_at
 	from 
 		users 
 	where
-		email = $1 and
+		phone_number = $1 and
 		deleted_at is null
 	`
 
-	if err = a.db.QueryRow(ctx, query, request.GetEmail()).Scan(
+	if err = a.db.QueryRow(ctx, query, request.GetPhone()).Scan(
 		&user.Id,
-		&user.Email,
+		&user.PhoneNumber,
 		&user.FullName,
-		&user.Password,
 		&user.UserRole,
 		&createdAt,
 	); err != nil {
@@ -106,6 +103,39 @@ func (a *authRepo) GetByEmail(ctx context.Context, request *pb.Email) (*pb.UserB
 	user.CreatedAt = createdAt.Format(Layout)
 
 	return &user, nil
+}
+
+
+func (a *authRepo) CheckRefreshTokenExists(ctx context.Context, request *pb.RequestRefreshToken) (*pb.Void, error) {
+
+	var (
+		query string
+		err   error
+		exist int
+	)
+	
+	query = `
+		select
+			1
+			from
+			refresh_tokens
+			where
+			refresh_token = $1
+	`
+	
+	err = a.db.QueryRow(ctx, query, request.RefreshToken).Scan(&exist)
+
+	if err != nil && err.Error() != "no rows in result set" {
+		a.log.Error("error while checking refresh token is exists", logger.Error(err))
+		return &pb.Void{}, err
+	}
+
+	if exist != 1 {
+		a.log.Error("error: refresh token not found in database")
+		return &pb.Void{}, fmt.Errorf("error: refresh token not found in database")
+	}
+
+	return &pb.Void{}, nil
 }
 
 func (a *authRepo) DeleteRefreshTokenByUserId(ctx context.Context, request *pb.PrimaryKey) (*pb.Void, error) {
@@ -134,112 +164,21 @@ func (a *authRepo) StoreRefreshToken(ctx context.Context, request *pb.RefreshTok
 	var (
 		query string
 		err   error
-		// expiresIn time.Time
 	)
 
 	query = `
 	insert into refresh_tokens (
 		user_id,
 		refresh_token,
-		expires_in
+		expires_at
 	) values ($1, $2, $3)
 	`
-	// expiresIn, err = time.Parse(time.RFC3339, request.ExpiresIn)
-	// if err != nil {
-	// 	return &pb.Void{}, err
-	// }
 
 	if _, err = a.db.Exec(ctx, query,
 		request.UserId,
 		request.RefreshToken,
-		request.ExpiresIn,
+		request.ExpiresAt,
 	); err != nil {
-		return &pb.Void{}, err
-	}
-
-	return &pb.Void{}, nil
-}
-
-func (a *authRepo) CheckRefreshTokenExists(ctx context.Context, request *pb.RequestRefreshToken) (*pb.Void, error) {
-
-	var (
-		query string
-		err   error
-		exist int
-	)
-
-	query = `
-		select
-			1
-		from
-			refresh_tokens
-		where
-			refresh_token = $1
-	`
-
-	err = a.db.QueryRow(ctx, query, request.RefreshToken).Scan(&exist)
-
-	if err != nil && err.Error() != "no rows in result set" {
-		a.log.Error("error while checking refresh token is exists", logger.Error(err))
-		return &pb.Void{}, err
-	}
-
-	if exist != 1 {
-		a.log.Error("error: refresh token not found in database")
-		return &pb.Void{}, fmt.Errorf("error: refresh token not found in database")
-	}
-
-	return &pb.Void{}, nil
-}
-
-func (a *authRepo) CheckEmailExists(ctx context.Context, request *pb.Email) (*pb.Void, error) {
-
-	var exist int
-
-	query := `
-		select
-			1
-		from
-			users
-		where
-			email = $1
-	`
-
-	err := a.db.QueryRow(ctx, query, request.Email).Scan(&exist)
-	if err != nil && err.Error() != "no rows in result set" {
-		a.log.Error("error while checking if email exists", logger.Error(err))
-		return &pb.Void{}, err
-	}
-
-	if exist != 1 {
-		a.log.Error("error: email not found in database")
-		return &pb.Void{}, fmt.Errorf("email not found in database")
-	}
-
-	return &pb.Void{}, nil
-}
-
-func (a *authRepo) ResetPassword(ctx context.Context, request *pb.ResetPassword) (*pb.Void, error) {
-
-	var (
-		query string
-		err   error
-	)
-
-	query = `
-		update 
-			users
-		set
-			password_hash = $1
-		where
-			email = $2
-	`
-
-	if _, err = a.db.Exec(ctx, query,
-		request.NewPassword,
-		request.Email,
-	); err != nil {
-		a.log.Error("error while saving new password in storage layer", logger.Error(err))
 		return &pb.Void{}, err
 	}
 

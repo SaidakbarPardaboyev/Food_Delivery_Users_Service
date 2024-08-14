@@ -24,12 +24,10 @@ type IStorage interface {
 
 type IAuthStorage interface {
 	Create(context.Context, *pb.CreateUser) (*pb.User, error)
-	GetByEmail(context.Context, *pb.Email) (*pb.UserByEmail, error)
-	DeleteRefreshTokenByUserId(context.Context, *pb.PrimaryKey) (*pb.Void, error)
-	StoreRefreshToken(context.Context, *pb.RefreshToken) (*pb.Void, error)
+	GetByPhone(context.Context, *pb.Phone) (*pb.User, error)
 	CheckRefreshTokenExists(context.Context, *pb.RequestRefreshToken) (*pb.Void, error)
-	CheckEmailExists(context.Context, *pb.Email) (*pb.Void, error)
-	ResetPassword(context.Context, *pb.ResetPassword) (*pb.Void, error)
+	StoreRefreshToken(context.Context, *pb.RefreshToken) (*pb.Void, error)
+	DeleteRefreshTokenByUserId(context.Context, *pb.PrimaryKey) (*pb.Void, error)
 }
 
 type IUsersStorage interface {
@@ -37,8 +35,6 @@ type IUsersStorage interface {
 	GetAll(context.Context, *pb.GetListRequest) (*pb.Users, error)
 	Update(context.Context, *pb.UpdateUser) (*pb.UpdatedUser, error)
 	Delete(context.Context, *pb.PrimaryKey) (*pb.Void, error)
-	CheckPasswordExisis(context.Context, *pb.ChangePassword) (bool, error)
-	ChangePassword(context.Context, *pb.ChangePassword) (*pb.Void, error)
 	ChangeUserRole(context.Context, *pb.ChangeUserRole) (*pb.Void, error)
 	CheckUserIdExists(context.Context, *pb.PrimaryKey) (*pb.Void, error)
 }

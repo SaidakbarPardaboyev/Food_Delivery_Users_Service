@@ -2,7 +2,6 @@ package postgres
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"time"
 	"users_service/pkg/helper"
@@ -313,11 +312,11 @@ func (u *usersRepo) ChangeUserRole(ctx context.Context, request *pb.ChangeUserRo
 }
 
 func (u *usersRepo) CheckUserIdExists(ctx context.Context, request *pb.PrimaryKey) (*pb.Void, error) {
-	
+
 	var (
 		exist int
 		query string
-		err error
+		err   error
 	)
 
 	query = `
@@ -332,8 +331,8 @@ func (u *usersRepo) CheckUserIdExists(ctx context.Context, request *pb.PrimaryKe
 
 	if err.Error() == "no rows in result set" {
 
-	} 
-	
+	}
+
 	if err != nil {
 
 	}
