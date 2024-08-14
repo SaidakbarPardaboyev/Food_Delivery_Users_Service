@@ -1,0 +1,3 @@
+[submodule "Food_Delivery_Protos"]
+	path = Food_Delivery_Protos
+	url = git@github.com:SaidakbarPardaboyev/Food_Delivery_Protos.git

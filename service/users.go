@@ -6,8 +6,6 @@ import (
 	"users_service/storage"
 
 	pb "users_service/genproto/users"
-
-	"golang.org/x/crypto/bcrypt"
 )
 
 type userService struct {
@@ -67,35 +65,6 @@ func (u *userService) Delete(ctx context.Context, request *pb.PrimaryKey) (*pb.V
 	return resp, nil
 }
 
-func (u *userService) ChangePassword(ctx context.Context, request *pb.ChangePassword) (*pb.Void, error) {
-
-	iscurrent, err := u.storage.Users().CheckPasswordExisis(ctx, request)
-	if err != nil {
-		u.log.Error("error while checking current password is currect in service layer", logger.Error(err))
-		return &pb.Void{}, err
-	}
-
-	if !iscurrent {
-		u.log.Error("error while current password is not correct in service layer", logger.Error(err))
-		return &pb.Void{}, err
-	}
-
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(request.NewPassword), bcrypt.DefaultCost)
-	if err != nil {
-		u.log.Error("Error with hashing password", logger.Error(err))
-		return &pb.Void{}, err
-	}
-	request.NewPassword = string(hashedPassword)
-
-	resp, err := u.storage.Users().ChangePassword(ctx, request)
-	if err != nil {
-		u.log.Error("error while changing password in service layer", logger.Error(err))
-		return &pb.Void{}, err
-	}
-
-	return resp, nil
-}
-
 func (u *userService) ChangeUserRole(ctx context.Context, request *pb.ChangeUserRole) (*pb.Void, error) {
 
 	resp, err := u.storage.Users().ChangeUserRole(ctx, request)
@@ -107,6 +76,6 @@ func (u *userService) ChangeUserRole(ctx context.Context, request *pb.ChangeUser
 	return resp, nil
 }
 
-func (u *userService) CheckUserIdExists(ctx context.Context, in *pb.PrimaryKey) (*pb.Void, error) {
-	
-}
+// func (u *userService) CheckUserIdExists(ctx context.Context, in *pb.PrimaryKey) (*pb.Void, error) {
+
+// }
