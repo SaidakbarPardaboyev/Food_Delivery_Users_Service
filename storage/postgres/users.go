@@ -36,8 +36,8 @@ func (u *usersRepo) GetById(ctx context.Context, request *pb.PrimaryKey) (*pb.Us
 
 	query = `select
 		id,
-		email,
 		full_name,
+		phone_number,
 		user_role,
 		created_at
 	from
