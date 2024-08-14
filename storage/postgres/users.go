@@ -2,13 +2,13 @@ package postgres
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 	"users_service/pkg/helper"
 	"users_service/pkg/logger"
 
 	"github.com/jackc/pgx/v5/pgxpool"
-	"golang.org/x/crypto/bcrypt"
 
 	pb "users_service/genproto/users"
 )
@@ -32,6 +32,7 @@ func (u *usersRepo) GetById(ctx context.Context, request *pb.PrimaryKey) (*pb.Us
 		query     string
 		err       error
 		createdAt time.Time
+		updatedAt time.Time
 	)
 
 	query = `select
@@ -39,7 +40,8 @@ func (u *usersRepo) GetById(ctx context.Context, request *pb.PrimaryKey) (*pb.Us
 		full_name,
 		phone_number,
 		user_role,
-		created_at
+		created_at,
+		updated_at
 	from
 		users
 	where
@@ -51,16 +53,18 @@ func (u *usersRepo) GetById(ctx context.Context, request *pb.PrimaryKey) (*pb.Us
 		request.GetId()).
 		Scan(
 			&user.Id,
-			&user.Email,
 			&user.FullName,
+			&user.PhoneNumber,
 			&user.UserRole,
 			&createdAt,
+			&updatedAt,
 		); err != nil {
 		u.log.Error("error while getting user info in storage layer", logger.Error(err))
 		return nil, err
 	}
 
 	user.CreatedAt = createdAt.Format(Layout)
+	user.UpdatedAt = updatedAt.Format(Layout)
 
 	return &user, nil
 }
@@ -76,6 +80,7 @@ func (u *usersRepo) GetAll(ctx context.Context, request *pb.GetListRequest) (*pb
 		err               error
 		count             int
 		createdAt         time.Time
+		updatedAt         time.Time
 	)
 
 	if request.GetFullName() != "" {
@@ -83,9 +88,9 @@ func (u *usersRepo) GetAll(ctx context.Context, request *pb.GetListRequest) (*pb
 		params["full_name"] = request.GetFullName()
 	}
 
-	if request.GetEmail() != "" {
-		filter += " email = @email and "
-		params["email"] = request.GetEmail()
+	if request.GetPhoneNumber() != "" {
+		filter += " phone_number = @phone_number and "
+		params["phone_number"] = request.GetPhoneNumber()
 	}
 
 	if request.GetUserRole() != "" {
@@ -109,7 +114,8 @@ func (u *usersRepo) GetAll(ctx context.Context, request *pb.GetListRequest) (*pb
 		email,
 		full_name,
 		user_role,
-		created_at
+		created_at,
+		updated_at
 	from
 		users
 	where 
@@ -132,15 +138,17 @@ func (u *usersRepo) GetAll(ctx context.Context, request *pb.GetListRequest) (*pb
 		var user pb.User
 		if err = rows.Scan(
 			&user.Id,
-			&user.Email,
+			&user.PhoneNumber,
 			&user.FullName,
 			&user.UserRole,
 			&createdAt,
+			&updatedAt,
 		); err != nil {
 			u.log.Error("error while getting user info in storage layer", logger.Error(err))
 			return nil, err
 		}
 		user.CreatedAt = createdAt.Format(Layout)
+		user.UpdatedAt = updatedAt.Format(Layout)
 
 		users = append(users, &user)
 	}
@@ -157,14 +165,15 @@ func (u *usersRepo) GetAll(ctx context.Context, request *pb.GetListRequest) (*pb
 	}, nil
 }
 
-func (u *usersRepo) Update(ctx context.Context, request *pb.UpdateUser) (*pb.UpdatedUser, error) {
+func (u *usersRepo) Update(ctx context.Context, request *pb.UpdateUser) (*pb.User, error) {
 
 	var (
-		user      = pb.UpdatedUser{}
+		user      = pb.User{}
 		params    = make(map[string]interface{})
 		filter    = ""
 		query     = ` update users set `
 		err       error
+		createdAt time.Time
 		updatedAt time.Time
 	)
 
@@ -175,37 +184,33 @@ func (u *usersRepo) Update(ctx context.Context, request *pb.UpdateUser) (*pb.Upd
 		params["full_name"] = request.GetFullName()
 	}
 
-	if request.GetEmail() != "" {
-		filter += ` email = @email, `
-		params["email"] = request.GetEmail()
-	}
-
-	if request.GetPasswordHash() != "" {
-		filter += ` password_hash = @password_hash, `
-		params["password_hash"] = request.GetPasswordHash()
+	if request.GetBirthday() != "" {
+		filter += ` birthday = @birthday, `
+		params["birthday"] = request.GetBirthday()
 	}
 
 	query += filter + ` updated_at = now() where id = @id returning 
 		id,
-		email,
-		password_hash,
 		full_name,
+		phone_number,
 		user_role,
+		created_at,
 		updated_at
 	`
 	fullQuery, args := helper.ReplaceQueryParams(query, params)
 	if err = u.db.QueryRow(ctx, fullQuery, args...).Scan(
 		&user.Id,
-		&user.Email,
-		&user.Password,
 		&user.FullName,
+		&user.PhoneNumber,
 		&user.UserRole,
+		&createdAt,
 		&updatedAt,
 	); err != nil {
 		u.log.Error("error while updating user info in storage layer", logger.Error(err))
 		return nil, err
 	}
 
+	user.CreatedAt = createdAt.Format(Layout)
 	user.UpdatedAt = updatedAt.Format(Layout)
 
 	return &user, nil
@@ -216,71 +221,6 @@ func (u *usersRepo) Delete(ctx context.Context, request *pb.PrimaryKey) (*pb.Voi
 	_, err := u.db.Exec(ctx, ` update users set deleted_at = now() where id = $1`, request.GetId())
 
 	return &pb.Void{}, err
-}
-
-func (u *usersRepo) CheckPasswordExisis(ctx context.Context, request *pb.ChangePassword) (bool, error) {
-
-	var hashedPassword string
-
-	query := `
-		select
-			password_hash
-		from
-			users
-	`
-
-	rows, err := u.db.Query(ctx, query)
-	if err != nil {
-		u.log.Error("error while retrieving hashed passwords from database", logger.Error(err))
-		return false, err
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		err = rows.Scan(&hashedPassword)
-		if err != nil {
-			u.log.Error("error while scanning hashed password", logger.Error(err))
-			return false, err
-		}
-
-		err = bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(request.CurrentPassword))
-		if err == nil {
-			return true, nil
-		} else if err != bcrypt.ErrMismatchedHashAndPassword {
-			u.log.Error("error while comparing hashed password", logger.Error(err))
-			return false, err
-		}
-	}
-
-	return false, fmt.Errorf("password does not match any stored password")
-}
-
-func (u *usersRepo) ChangePassword(ctx context.Context, request *pb.ChangePassword) (*pb.Void, error) {
-
-	var (
-		query string
-		err   error
-	)
-
-	query = `
-		update 
-			users 
-		set 
-			password_hash = $1
-		where
-			id = $2 and 
-			deleted_at is null
-	`
-
-	if _, err = u.db.Exec(ctx, query,
-		request.GetNewPassword(),
-		request.GetUserId(),
-	); err != nil {
-		u.log.Error("error while changing password in storage layer", logger.Error(err))
-		return nil, err
-	}
-
-	return &pb.Void{}, nil
 }
 
 func (u *usersRepo) ChangeUserRole(ctx context.Context, request *pb.ChangeUserRole) (*pb.Void, error) {
@@ -330,10 +270,12 @@ func (u *usersRepo) CheckUserIdExists(ctx context.Context, request *pb.PrimaryKe
 	err = u.db.QueryRow(ctx, query, request.GetId()).Scan(&exist)
 
 	if err.Error() == "no rows in result set" {
-
+		return &pb.Void{}, errors.New("user does not exists")
 	}
 
 	if err != nil {
-
+		return &pb.Void{}, err
 	}
+
+	return &pb.Void{}, nil
 }
