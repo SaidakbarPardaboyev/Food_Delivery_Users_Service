@@ -33,7 +33,7 @@ type IAuthStorage interface {
 type IUsersStorage interface {
 	GetById(context.Context, *pb.PrimaryKey) (*pb.User, error)
 	GetAll(context.Context, *pb.GetListRequest) (*pb.Users, error)
-	Update(context.Context, *pb.UpdateUser) (*pb.UpdatedUser, error)
+	Update(context.Context, *pb.UpdateUser) (*pb.User, error)
 	Delete(context.Context, *pb.PrimaryKey) (*pb.Void, error)
 	ChangeUserRole(context.Context, *pb.ChangeUserRole) (*pb.Void, error)
 	CheckUserIdExists(context.Context, *pb.PrimaryKey) (*pb.Void, error)

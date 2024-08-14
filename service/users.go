@@ -43,12 +43,12 @@ func (u *userService) GetAll(ctx context.Context, request *pb.GetListRequest) (*
 	return resp, nil
 }
 
-func (u *userService) Update(ctx context.Context, request *pb.UpdateUser) (*pb.UpdatedUser, error) {
+func (u *userService) Update(ctx context.Context, request *pb.UpdateUser) (*pb.User, error) {
 
 	resp, err := u.storage.Users().Update(ctx, request)
 	if err != nil {
 		u.log.Error("error while updating user info in service layer", logger.Error(err))
-		return &pb.UpdatedUser{}, err
+		return &pb.User{}, err
 	}
 
 	return resp, nil
@@ -76,6 +76,13 @@ func (u *userService) ChangeUserRole(ctx context.Context, request *pb.ChangeUser
 	return resp, nil
 }
 
-// func (u *userService) CheckUserIdExists(ctx context.Context, in *pb.PrimaryKey) (*pb.Void, error) {
+func (u *userService) CheckUserIdExists(ctx context.Context, in *pb.PrimaryKey) (*pb.Void, error) {
+	
+	resp, err := u.storage.Users().CheckUserIdExists(ctx, in)
+	if err != nil {
+		u.log.Error("error while check user id in service layer", logger.Error(err))
+		return &pb.Void{}, err
+	}
 
-// }
+	return resp, nil
+}
