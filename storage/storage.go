@@ -19,7 +19,7 @@ type Storage struct {
 type IStorage interface {
 	Close()
 	Auth() IAuthStorage
-	Users() IUsersStorage
+	// Users() IUsersStorage
 }
 
 type IAuthStorage interface {
@@ -59,6 +59,6 @@ func (s *Storage) Auth() IAuthStorage {
 	return postgres.NewAuthRepo(s.dbPostgres, s.log)
 }
 
-func (s *Storage) Users() IUsersStorage {
-	return postgres.NewUsersRepo(s.dbPostgres, s.log)
-}
+// func (s *Storage) Users() IUsersStorage {
+// 	return postgres.NewUsersRepo(s.dbPostgres, s.log)
+// }

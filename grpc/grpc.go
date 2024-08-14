@@ -13,7 +13,7 @@ func SetUpServer(services service.IServiceManager, log logger.ILogger) *grpc.Ser
 	grpcServer := grpc.NewServer()
 
 	pb.RegisterAuthServiceServer(grpcServer, services.AuthService())
-	pb.RegisterUsersServiceServer(grpcServer, services.UsersService())
+	// pb.RegisterUsersServiceServer(grpcServer, services.UsersService())
 
 	reflection.Register(grpcServer)
 	return grpcServer

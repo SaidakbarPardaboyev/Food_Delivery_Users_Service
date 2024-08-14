@@ -80,8 +80,7 @@ func (a *authRepo) GetByPhone(ctx context.Context, request *pb.Phone) (*pb.User,
 		phone_number,
 		full_name,
 		user_role,
-		created_at,
-		updated_at
+		created_at
 	from 
 		users 
 	where
@@ -105,7 +104,6 @@ func (a *authRepo) GetByPhone(ctx context.Context, request *pb.Phone) (*pb.User,
 	return &user, nil
 }
 
-
 func (a *authRepo) CheckRefreshTokenExists(ctx context.Context, request *pb.RequestRefreshToken) (*pb.Void, error) {
 
 	var (
@@ -113,7 +111,7 @@ func (a *authRepo) CheckRefreshTokenExists(ctx context.Context, request *pb.Requ
 		err   error
 		exist int
 	)
-	
+
 	query = `
 		select
 			1
@@ -122,7 +120,7 @@ func (a *authRepo) CheckRefreshTokenExists(ctx context.Context, request *pb.Requ
 			where
 			refresh_token = $1
 	`
-	
+
 	err = a.db.QueryRow(ctx, query, request.RefreshToken).Scan(&exist)
 
 	if err != nil && err.Error() != "no rows in result set" {
