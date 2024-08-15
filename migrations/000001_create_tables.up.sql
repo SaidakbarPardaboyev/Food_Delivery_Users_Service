@@ -1,4 +1,4 @@
-create type user_roles as enum('admin', 'chief', 'user');
+create type user_roles as enum('super_admin', 'admin', 'chief', 'user');
 
 CREATE TABLE users (
     id UUID PRIMARY KEY default gen_random_uuid(),
