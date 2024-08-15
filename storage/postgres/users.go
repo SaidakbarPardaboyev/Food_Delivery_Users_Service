@@ -281,11 +281,11 @@ func (u *usersRepo) CheckUserIdExists(ctx context.Context, request *pb.PrimaryKe
 
 	err = u.db.QueryRow(ctx, query, request.GetId()).Scan(&exist)
 
-	if err.Error() == "no rows in result set" {
-		return &pb.Void{}, errors.New("user does not exists")
-	}
-
+	
 	if err != nil {
+		if err.Error() == "no rows in result set" {
+			return &pb.Void{}, errors.New("user does not exists")
+		}
 		return &pb.Void{}, err
 	}
 
