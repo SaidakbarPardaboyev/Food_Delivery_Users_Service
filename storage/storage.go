@@ -40,7 +40,7 @@ type IUsersStorage interface {
 }
 
 func New(ctx context.Context, cfg *configs.Config, log *logger.ILogger) (IStorage, error) {
-	dbPostgres, err := postgres.ConnectDB(ctx, *cfg)
+	dbPostgres, err := postgres.ConnectDB(ctx, cfg)
 	if err != nil {
 		return nil, err
 	}
