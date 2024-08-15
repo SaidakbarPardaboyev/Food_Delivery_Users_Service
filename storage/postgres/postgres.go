@@ -10,7 +10,7 @@ import (
 
 const Layout = "02.01.2006 15:04:05"
 
-func ConnectDB(ctx context.Context, cfg configs.Config) (*pgxpool.Pool, error) {
+func ConnectDB(ctx context.Context, cfg *configs.Config) (*pgxpool.Pool, error) {
 	url := fmt.Sprintf(
 		`postgres://%s:%s@%s:%s/%s?sslmode=disable`,
 		cfg.PostgresUser,

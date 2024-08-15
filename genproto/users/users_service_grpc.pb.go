@@ -24,7 +24,7 @@ const _ = grpc.SupportPackageIsVersion7
 type UsersServiceClient interface {
 	GetById(ctx context.Context, in *PrimaryKey, opts ...grpc.CallOption) (*User, error)
 	GetAll(ctx context.Context, in *GetListRequest, opts ...grpc.CallOption) (*Users, error)
-	Update(ctx context.Context, in *UpdateUser, opts ...grpc.CallOption) (*UpdatedUser, error)
+	Update(ctx context.Context, in *UpdateUser, opts ...grpc.CallOption) (*User, error)
 	Delete(ctx context.Context, in *PrimaryKey, opts ...grpc.CallOption) (*Void, error)
 	ChangeUserRole(ctx context.Context, in *ChangeUserRole, opts ...grpc.CallOption) (*Void, error)
 	CheckUserIdExists(ctx context.Context, in *PrimaryKey, opts ...grpc.CallOption) (*Void, error)
@@ -56,8 +56,8 @@ func (c *usersServiceClient) GetAll(ctx context.Context, in *GetListRequest, opt
 	return out, nil
 }
 
-func (c *usersServiceClient) Update(ctx context.Context, in *UpdateUser, opts ...grpc.CallOption) (*UpdatedUser, error) {
-	out := new(UpdatedUser)
+func (c *usersServiceClient) Update(ctx context.Context, in *UpdateUser, opts ...grpc.CallOption) (*User, error) {
+	out := new(User)
 	err := c.cc.Invoke(ctx, "/users.UsersService/Update", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -98,7 +98,7 @@ func (c *usersServiceClient) CheckUserIdExists(ctx context.Context, in *PrimaryK
 type UsersServiceServer interface {
 	GetById(context.Context, *PrimaryKey) (*User, error)
 	GetAll(context.Context, *GetListRequest) (*Users, error)
-	Update(context.Context, *UpdateUser) (*UpdatedUser, error)
+	Update(context.Context, *UpdateUser) (*User, error)
 	Delete(context.Context, *PrimaryKey) (*Void, error)
 	ChangeUserRole(context.Context, *ChangeUserRole) (*Void, error)
 	CheckUserIdExists(context.Context, *PrimaryKey) (*Void, error)
@@ -115,7 +115,7 @@ func (UnimplementedUsersServiceServer) GetById(context.Context, *PrimaryKey) (*U
 func (UnimplementedUsersServiceServer) GetAll(context.Context, *GetListRequest) (*Users, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAll not implemented")
 }
-func (UnimplementedUsersServiceServer) Update(context.Context, *UpdateUser) (*UpdatedUser, error) {
+func (UnimplementedUsersServiceServer) Update(context.Context, *UpdateUser) (*User, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
 }
 func (UnimplementedUsersServiceServer) Delete(context.Context, *PrimaryKey) (*Void, error) {

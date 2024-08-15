@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"time"
 	"users_service/pkg/logger"
@@ -71,7 +72,8 @@ func (a *authRepo) GetByPhone(ctx context.Context, request *pb.Phone) (*pb.User,
 		user      = pb.User{}
 		query     string
 		err       error
-		createdAt time.Time
+		createdAt sql.NullTime
+		updatedAt sql.NullTime
 	)
 
 	query = `
@@ -88,18 +90,24 @@ func (a *authRepo) GetByPhone(ctx context.Context, request *pb.Phone) (*pb.User,
 		deleted_at is null
 	`
 
-	if err = a.db.QueryRow(ctx, query, request.GetPhone()).Scan(
+	if err = a.db.QueryRow(ctx, query, request.GetPhoneNumber()).Scan(
 		&user.Id,
 		&user.PhoneNumber,
 		&user.FullName,
 		&user.UserRole,
 		&createdAt,
+		&updatedAt,
 	); err != nil {
 		a.log.Error("error while getting user id by username", logger.Error(err))
 		return nil, err
 	}
 
-	user.CreatedAt = createdAt.Format(Layout)
+	if createdAt.Valid {
+		user.CreatedAt = createdAt.Time.Format(Layout)
+	}
+	if updatedAt.Valid {
+		user.UpdatedAt = updatedAt.Time.Format(Layout)
+	}
 
 	return &user, nil
 }
