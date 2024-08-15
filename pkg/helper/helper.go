@@ -23,3 +23,4 @@ func ReplaceQueryParams(namedQuery string, params map[string]interface{}) (strin
 
 	return namedQuery, args
 }
+

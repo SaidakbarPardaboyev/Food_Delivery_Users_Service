@@ -14,11 +14,14 @@ CREATE TABLE if not exists users (
 CREATE TABLE if not exists workers_of_branches (
     id         UUID PRIMARY KEY default gen_random_uuid(),
     user_id    UUID not null references users(id),
+    worker_id  serial not null,
     branch_id  UUID not null,
     created_at timestamp default now(),
     updated_at timestamp,
     deleted_at timestamp
 );
+
+alter sequence workers_of_branches_worker_id_seq restart with 1000;
 
 CREATE TABLE if not exists refresh_tokens (
     id            UUID PRIMARY KEY default gen_random_uuid(),

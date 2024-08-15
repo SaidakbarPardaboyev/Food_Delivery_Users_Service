@@ -19,7 +19,8 @@ type Storage struct {
 type IStorage interface {
 	Close()
 	Auth() IAuthStorage
-	// Users() IUsersStorage
+	Users() IUsersStorage
+	WorkersOfBranches() IWorkersOfBranches
 }
 
 type IAuthStorage interface {
@@ -37,6 +38,16 @@ type IUsersStorage interface {
 	Delete(context.Context, *pb.PrimaryKey) (*pb.Void, error)
 	ChangeUserRole(context.Context, *pb.ChangeUserRole) (*pb.Void, error)
 	CheckUserIdExists(context.Context, *pb.PrimaryKey) (*pb.Void, error)
+}
+
+type IWorkersOfBranches interface {
+	Create(ctx context.Context, request *pb.CreateWorker) (*pb.WorkerId, error)
+	GetByUUID(ctx context.Context, request *pb.PrimaryKey) (*pb.Worker, string, error)
+	GetByWorkerId(ctx context.Context, request *pb.WorkerId) (*pb.Worker, string, error)
+	GetAll(ctx context.Context, request *pb.WorkerFilter) (*pb.Workers, []string, error)
+	Update(ctx context.Context, request *pb.Worker) (*pb.Worker, error)
+	Delete(ctx context.Context, request *pb.WorkerId) (*pb.Void, error)
+	CheckWorkerExists(ctx context.Context, request *pb.WorkerId) (*pb.Void, error)
 }
 
 func New(ctx context.Context, cfg *configs.Config, log *logger.ILogger) (IStorage, error) {
@@ -59,6 +70,10 @@ func (s *Storage) Auth() IAuthStorage {
 	return postgres.NewAuthRepo(s.dbPostgres, s.log)
 }
 
-// func (s *Storage) Users() IUsersStorage {
-// 	return postgres.NewUsersRepo(s.dbPostgres, s.log)
-// }
+func (s *Storage) Users() IUsersStorage {
+	return postgres.NewUsersRepo(s.dbPostgres, s.log)
+}
+
+func (s *Storage) WorkersOfBranches() IWorkersOfBranches {
+	return postgres.NewWorkersOfBranchesRepo(s.dbPostgres, s.log)
+}

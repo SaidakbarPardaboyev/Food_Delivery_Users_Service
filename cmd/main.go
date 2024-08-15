@@ -4,6 +4,7 @@ import (
 	"context"
 	"users_service/configs"
 	"users_service/grpc"
+	"users_service/grpc/clients"
 	"users_service/pkg/logger"
 	"users_service/service"
 	"users_service/storage"
@@ -25,9 +26,14 @@ func main() {
 	}
 	defer storage.Close()
 
-	services := service.NewServiceManager(storage, log)
-	server := grpc.SetUpServer(services, log)
+	clients, err := clients.NewClients(cfg)
+	if err != nil {
+		log.Panic("error while creating clients in main", logger.Error(err))
+		return
+	}
+	services := service.NewServiceManager(storage, clients, log)
 
+	server := grpc.SetUpServer(services, log)
 	listener, err := net.Listen("tcp",
 		cfg.UserServiceGrpcHost+cfg.UserServiceGrpcPort,
 	)

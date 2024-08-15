@@ -1,6 +1,7 @@
 package configs
 
 import (
+	"fmt"
 	"log"
 	"os"
 
@@ -41,12 +42,13 @@ func Load() *Config {
 	config.PostgresHost = cast.ToString(coalesce("POSTGRES_HOST", "localhost"))
 	config.PostgresPort = cast.ToString(coalesce("POSTGRES_PORT", "5432"))
 	config.PostgresUser = cast.ToString(coalesce("POSTGRES_USER", "postgres"))
-	config.PostgresName = cast.ToString(coalesce("POSTGRES_DBNAME", "language_leap_auth_service"))
+	config.PostgresName = cast.ToString(coalesce("POSTGRES_DBNAME", "food_delivery_user_service"))
 	config.PostgresPassword = cast.ToString(coalesce("POSTGRES_PASSWORD", "root"))
 
 	config.ServiceName = cast.ToString(coalesce("SERVICE_NAME", "auth_service"))
 	config.LoggerLevel = cast.ToString(coalesce("LOGGER_LEVEL", "debug"))
 	config.LogPath = cast.ToString(coalesce("LOG_PATH", "app.log"))
+	fmt.Println(config.PostgresName)
 
 	return &config
 }
