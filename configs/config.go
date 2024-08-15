@@ -15,8 +15,8 @@ type Config struct {
 	UserServiceGrpcHost string
 	UserServiceGrpcPort string
 
-	BudgetingServiceGrpcHost string
-	BudgetingServiceGrpcPort string
+	OrdersServiceGrpcHost string
+	OrdersServiceGrpcPort string
 
 	PostgresHost     string
 	PostgresPort     string
@@ -57,8 +57,8 @@ func Load() *Config {
 	config.UserServiceGrpcHost = cast.ToString(coalesce("USER_SERVICE_GRPC_HOST", "localhost"))
 	config.UserServiceGrpcPort = cast.ToString(coalesce("USER_SERVICE_GRPC_PORT", ":1111"))
 
-	config.BudgetingServiceGrpcHost = cast.ToString(coalesce("BUDGETING_SERVICE_GRPC_HOST", "localhost"))
-	config.BudgetingServiceGrpcPort = cast.ToString(coalesce("BUDGETING_SERVICE_GRPC_PORT", ":3333"))
+	config.OrdersServiceGrpcHost = cast.ToString(coalesce("ORDERS_SERVICE_GRPC_HOST", "localhost"))
+	config.OrdersServiceGrpcPort = cast.ToString(coalesce("ORDERS_SERVICE_GRPC_PORT", ":5555"))
 
 	config.PostgresHost = cast.ToString(coalesce("POSTGRES_HOST", "localhost"))
 	config.PostgresPort = cast.ToString(coalesce("POSTGRES_PORT", "5432"))
