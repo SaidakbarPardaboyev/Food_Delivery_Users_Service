@@ -21,7 +21,6 @@ type Config struct {
 	ServiceName string
 	LoggerLevel string
 	LogPath     string
-
 }
 
 func Load() *Config {
