@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"time"
 	"users_service/pkg/logger"
@@ -71,8 +72,8 @@ func (a *authRepo) GetByPhone(ctx context.Context, request *pb.Phone) (*pb.User,
 		user      = pb.User{}
 		query     string
 		err       error
-		createdAt time.Time
-		updatedAt time.Time
+		createdAt sql.NullTime
+		updatedAt sql.NullTime
 	)
 
 	query = `
@@ -102,12 +103,15 @@ func (a *authRepo) GetByPhone(ctx context.Context, request *pb.Phone) (*pb.User,
 		return nil, err
 	}
 
-	user.CreatedAt = createdAt.Format(Layout)
-	user.UpdatedAt = updatedAt.Format(Layout)
+	if createdAt.Valid {
+		user.CreatedAt = createdAt.Time.Format(Layout)
+	}
+	if updatedAt.Valid {
+		user.UpdatedAt = updatedAt.Time.Format(Layout)
+	}
 
 	return &user, nil
 }
-
 
 func (a *authRepo) CheckRefreshTokenExists(ctx context.Context, request *pb.RequestRefreshToken) (*pb.Void, error) {
 
@@ -116,7 +120,7 @@ func (a *authRepo) CheckRefreshTokenExists(ctx context.Context, request *pb.Requ
 		err   error
 		exist int
 	)
-	
+
 	query = `
 		select
 			1
@@ -125,7 +129,7 @@ func (a *authRepo) CheckRefreshTokenExists(ctx context.Context, request *pb.Requ
 			where
 			refresh_token = $1
 	`
-	
+
 	err = a.db.QueryRow(ctx, query, request.RefreshToken).Scan(&exist)
 
 	if err != nil && err.Error() != "no rows in result set" {

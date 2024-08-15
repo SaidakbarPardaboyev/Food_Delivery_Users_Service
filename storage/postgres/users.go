@@ -2,9 +2,9 @@ package postgres
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
-	"time"
 	"users_service/pkg/helper"
 	"users_service/pkg/logger"
 
@@ -31,8 +31,8 @@ func (u *usersRepo) GetById(ctx context.Context, request *pb.PrimaryKey) (*pb.Us
 		user      = pb.User{}
 		query     string
 		err       error
-		createdAt time.Time
-		updatedAt time.Time
+		createdAt sql.NullTime
+		updatedAt sql.NullTime
 	)
 
 	query = `select
@@ -63,8 +63,12 @@ func (u *usersRepo) GetById(ctx context.Context, request *pb.PrimaryKey) (*pb.Us
 		return nil, err
 	}
 
-	user.CreatedAt = createdAt.Format(Layout)
-	user.UpdatedAt = updatedAt.Format(Layout)
+	if createdAt.Valid {
+		user.CreatedAt = createdAt.Time.Format(Layout)
+	}
+	if updatedAt.Valid {
+		user.UpdatedAt = updatedAt.Time.Format(Layout)
+	}
 
 	return &user, nil
 }
@@ -79,8 +83,8 @@ func (u *usersRepo) GetAll(ctx context.Context, request *pb.GetListRequest) (*pb
 		params            = make(map[string]interface{})
 		err               error
 		count             int
-		createdAt         time.Time
-		updatedAt         time.Time
+		createdAt         sql.NullTime
+		updatedAt         sql.NullTime
 	)
 
 	if request.GetFullName() != "" {
@@ -111,7 +115,7 @@ func (u *usersRepo) GetAll(ctx context.Context, request *pb.GetListRequest) (*pb
 
 	query = `select
 		id,
-		email,
+		phone_number,
 		full_name,
 		user_role,
 		created_at,
@@ -147,8 +151,12 @@ func (u *usersRepo) GetAll(ctx context.Context, request *pb.GetListRequest) (*pb
 			u.log.Error("error while getting user info in storage layer", logger.Error(err))
 			return nil, err
 		}
-		user.CreatedAt = createdAt.Format(Layout)
-		user.UpdatedAt = updatedAt.Format(Layout)
+		if createdAt.Valid {
+			user.CreatedAt = createdAt.Time.Format(Layout)
+		}
+		if updatedAt.Valid {
+			user.UpdatedAt = updatedAt.Time.Format(Layout)
+		}
 
 		users = append(users, &user)
 	}
@@ -173,8 +181,8 @@ func (u *usersRepo) Update(ctx context.Context, request *pb.UpdateUser) (*pb.Use
 		filter    = ""
 		query     = ` update users set `
 		err       error
-		createdAt time.Time
-		updatedAt time.Time
+		createdAt sql.NullTime
+		updatedAt sql.NullTime
 	)
 
 	params["id"] = request.GetId()
@@ -210,8 +218,12 @@ func (u *usersRepo) Update(ctx context.Context, request *pb.UpdateUser) (*pb.Use
 		return nil, err
 	}
 
-	user.CreatedAt = createdAt.Format(Layout)
-	user.UpdatedAt = updatedAt.Format(Layout)
+	if createdAt.Valid {
+		user.CreatedAt = createdAt.Time.Format(Layout)
+	}
+	if updatedAt.Valid {
+		user.UpdatedAt = updatedAt.Time.Format(Layout)
+	}
 
 	return &user, nil
 }

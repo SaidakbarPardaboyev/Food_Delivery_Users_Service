@@ -14,7 +14,7 @@ CREATE TABLE if not exists users (
 CREATE TABLE if not exists workers_of_branches (
     id         UUID PRIMARY KEY default gen_random_uuid(),
     user_id    UUID not null references users(id),
-    branch_id  UUID not null
+    branch_id  UUID not null,
     created_at timestamp default now(),
     updated_at timestamp,
     deleted_at timestamp
@@ -28,7 +28,7 @@ CREATE TABLE if not exists refresh_tokens (
     created_at    TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE user_locations (
+CREATE TABLE if not exists user_locations (
     id               UUID PRIMARY KEY default gen_random_uuid(),
     user_id          UUID not null references users(id),
     address          varchar not null,
@@ -39,5 +39,6 @@ CREATE TABLE user_locations (
     latitute         double precision,
     longitute        double precision,
     created_at       timestamp default CURRENT_TIMESTAMP,
-    updated_at       timestamp
-)
+    updated_at       timestamp,
+    deleted_at       timestamp
+);
