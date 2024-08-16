@@ -12,6 +12,7 @@ import (
 
 	pb "users_service/genproto/users"
 )
+var dataLayout = "02.01.2006"
 
 type usersRepo struct {
 	db  *pgxpool.Pool
@@ -67,7 +68,7 @@ func (u *usersRepo) GetById(ctx context.Context, request *pb.PrimaryKey) (*pb.Us
 	}
 
 	if birthday.Valid {
-		user.Birthday = birthday.Time.Format(Layout)
+		user.Birthday = birthday.Time.Format(dataLayout)
 	}
 	if createdAt.Valid {
 		user.CreatedAt = createdAt.Time.Format(Layout)
@@ -161,7 +162,7 @@ func (u *usersRepo) GetAll(ctx context.Context, request *pb.GetListRequest) (*pb
 			return nil, err
 		}
 		if birthday.Valid {
-			user.Birthday = birthday.Time.Format(Layout)
+			user.Birthday = birthday.Time.Format(dataLayout)
 		}
 		if createdAt.Valid {
 			user.CreatedAt = createdAt.Time.Format(Layout)
@@ -233,7 +234,7 @@ func (u *usersRepo) Update(ctx context.Context, request *pb.UpdateUser) (*pb.Use
 		return nil, err
 	}
 	if birthday.Valid {
-		user.Birthday = birthday.Time.Format(Layout)
+		user.Birthday = birthday.Time.Format(dataLayout)
 	}
 	if createdAt.Valid {
 		user.CreatedAt = createdAt.Time.Format(Layout)
