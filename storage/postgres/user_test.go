@@ -10,11 +10,11 @@ import (
 	"github.com/google/uuid"
 )
 
-func setupUserRepo() (*usersRepo, func(), error) {
+func setupUserRepo() (*usersRepo, error) {
 	cfg := configs.Load()
 	db, err := ConnectDB(context.Background(), cfg)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	logger := logger.NewLogger(cfg.ServiceName, "debug", cfg.LogPath)
@@ -23,19 +23,15 @@ func setupUserRepo() (*usersRepo, func(), error) {
 		log: logger,
 	}
 
-	cleanup := func() {
-		db.Exec(context.Background(), "TRUNCATE TABLE users CASCADE")
-	}
-
-	return repo, cleanup, nil
+	return repo, nil
 }
 
 func TestGetById(t *testing.T) {
-	repo, cleanup, err := setupUserRepo()
+	repo, err := setupUserRepo()
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer cleanup()
+	defer repo.db.Exec(context.Background(), "DELETE FROM users WHERE phone_number = $1", "1234567890")
 
 	userID := uuid.New().String()
 	_, err = repo.db.Exec(context.Background(), "INSERT INTO users(id, phone_number, full_name, user_role) VALUES($1, '1234567890', 'John Doe', 'user')", userID)
@@ -55,11 +51,12 @@ func TestGetById(t *testing.T) {
 }
 
 func TestGetAll(t *testing.T) {
-	repo, cleanup, err := setupUserRepo()
+	repo, err := setupUserRepo()
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer cleanup()
+	defer repo.db.Exec(context.Background(), "DELETE FROM users WHERE phone_number = $1", "1234567891")
+	defer repo.db.Exec(context.Background(), "DELETE FROM users WHERE phone_number = $1", "1234567892")
 
 	userID1 := uuid.New().String()
 	userID2 := uuid.New().String()
@@ -81,18 +78,18 @@ func TestGetAll(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if len(users.Users) != 2 {
-		t.Errorf("expected 2 users, got %d", len(users.Users))
+	if len(users.Users) < 2 {
+		t.Errorf("expected 2+ users, got %d", len(users.Users))
 	}
 }
 
 func TestUpdate(t *testing.T) {
-	repo, cleanup, err := setupUserRepo()
+	repo, err := setupUserRepo()
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer cleanup()
 
+	defer repo.db.Exec(context.Background(), "DELETE FROM users WHERE phone_number = $1", "1234567890")
 	userID := uuid.New().String()
 	_, err = repo.db.Exec(context.Background(), "INSERT INTO users(id, phone_number, full_name, user_role) VALUES($1, '1234567890', 'John Doe', 'user')", userID)
 	if err != nil {
@@ -114,12 +111,12 @@ func TestUpdate(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
-	repo, cleanup, err := setupUserRepo()
+	repo, err := setupUserRepo()
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer cleanup()
 
+	defer repo.db.Exec(context.Background(), "DELETE FROM users WHERE phone_number = $1", "1234567890")
 	userID := uuid.New().String()
 	_, err = repo.db.Exec(context.Background(), "INSERT INTO users(id, phone_number, full_name, user_role) VALUES($1, '1234567890', 'John Doe', 'user')", userID)
 	if err != nil {
@@ -143,12 +140,12 @@ func TestDelete(t *testing.T) {
 }
 
 func TestChangeUserRole(t *testing.T) {
-	repo, cleanup, err := setupUserRepo()
+	repo, err := setupUserRepo()
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer cleanup()
 
+	defer repo.db.Exec(context.Background(), "DELETE FROM users WHERE phone_number = $1", "1234567890")
 	userID := uuid.New().String()
 	_, err = repo.db.Exec(context.Background(), "INSERT INTO users(id, phone_number, full_name, user_role) VALUES($1, '1234567890', 'John Doe', 'user')", userID)
 	if err != nil {
@@ -175,12 +172,12 @@ func TestChangeUserRole(t *testing.T) {
 }
 
 func TestCheckUserIdExists(t *testing.T) {
-	repo, cleanup, err := setupUserRepo()
+	repo, err := setupUserRepo()
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer cleanup()
 
+	defer repo.db.Exec(context.Background(), "DELETE FROM users WHERE phone_number = $1", "1234567890")
 	userID := uuid.New().String()
 	_, err = repo.db.Exec(context.Background(), "INSERT INTO users(id, phone_number, full_name, user_role) VALUES($1, '1234567890', 'John Doe', 'user')", userID)
 	if err != nil {

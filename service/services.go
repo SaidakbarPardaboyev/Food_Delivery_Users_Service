@@ -9,6 +9,7 @@ import (
 type IServiceManager interface {
 	AuthService() pb.AuthServiceServer
 	UsersService() pb.UsersServiceServer
+	UserLocation() pb.UserLocationServiceServer
 }
 
 type ServiceManager struct {
@@ -29,4 +30,8 @@ func (s *ServiceManager) AuthService() pb.AuthServiceServer {
 
 func (s *ServiceManager) UsersService() pb.UsersServiceServer {
 	return NewUsersService(s.storage, s.log)
+}
+
+func (s *ServiceManager) UserLocation() pb.UserLocationServiceServer {
+	return NewUserLocationService(s.storage, s.log)
 }

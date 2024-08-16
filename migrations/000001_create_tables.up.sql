@@ -35,7 +35,7 @@ CREATE TABLE if not exists user_locations (
     home_number      varchar,
     floor_number     int,
     apartment_number int,
-    padyezd_number   int,
+    entrance_number  int,
     latitute         double precision,
     longitute        double precision,
     created_at       timestamp default CURRENT_TIMESTAMP,

@@ -24,6 +24,7 @@ const _ = grpc.SupportPackageIsVersion7
 type UserLocationServiceClient interface {
 	Create(ctx context.Context, in *CreateUserLocation, opts ...grpc.CallOption) (*UserLocation, error)
 	GetById(ctx context.Context, in *PrimaryKey, opts ...grpc.CallOption) (*UserLocation, error)
+	GetByUserId(ctx context.Context, in *PrimaryKey, opts ...grpc.CallOption) (*UserLocation, error)
 	GetAll(ctx context.Context, in *UserLocationFilter, opts ...grpc.CallOption) (*UserLocations, error)
 	Update(ctx context.Context, in *UpdateUserLocation, opts ...grpc.CallOption) (*UserLocation, error)
 	Delete(ctx context.Context, in *PrimaryKey, opts ...grpc.CallOption) (*Void, error)
@@ -49,6 +50,15 @@ func (c *userLocationServiceClient) Create(ctx context.Context, in *CreateUserLo
 func (c *userLocationServiceClient) GetById(ctx context.Context, in *PrimaryKey, opts ...grpc.CallOption) (*UserLocation, error) {
 	out := new(UserLocation)
 	err := c.cc.Invoke(ctx, "/users.UserLocationService/GetById", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userLocationServiceClient) GetByUserId(ctx context.Context, in *PrimaryKey, opts ...grpc.CallOption) (*UserLocation, error) {
+	out := new(UserLocation)
+	err := c.cc.Invoke(ctx, "/users.UserLocationService/GetByUserId", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -88,6 +98,7 @@ func (c *userLocationServiceClient) Delete(ctx context.Context, in *PrimaryKey, 
 type UserLocationServiceServer interface {
 	Create(context.Context, *CreateUserLocation) (*UserLocation, error)
 	GetById(context.Context, *PrimaryKey) (*UserLocation, error)
+	GetByUserId(context.Context, *PrimaryKey) (*UserLocation, error)
 	GetAll(context.Context, *UserLocationFilter) (*UserLocations, error)
 	Update(context.Context, *UpdateUserLocation) (*UserLocation, error)
 	Delete(context.Context, *PrimaryKey) (*Void, error)
@@ -103,6 +114,9 @@ func (UnimplementedUserLocationServiceServer) Create(context.Context, *CreateUse
 }
 func (UnimplementedUserLocationServiceServer) GetById(context.Context, *PrimaryKey) (*UserLocation, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetById not implemented")
+}
+func (UnimplementedUserLocationServiceServer) GetByUserId(context.Context, *PrimaryKey) (*UserLocation, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetByUserId not implemented")
 }
 func (UnimplementedUserLocationServiceServer) GetAll(context.Context, *UserLocationFilter) (*UserLocations, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAll not implemented")
@@ -158,6 +172,24 @@ func _UserLocationService_GetById_Handler(srv interface{}, ctx context.Context, 
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(UserLocationServiceServer).GetById(ctx, req.(*PrimaryKey))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserLocationService_GetByUserId_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PrimaryKey)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserLocationServiceServer).GetByUserId(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/users.UserLocationService/GetByUserId",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserLocationServiceServer).GetByUserId(ctx, req.(*PrimaryKey))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -230,6 +262,10 @@ var UserLocationService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetById",
 			Handler:    _UserLocationService_GetById_Handler,
+		},
+		{
+			MethodName: "GetByUserId",
+			Handler:    _UserLocationService_GetByUserId_Handler,
 		},
 		{
 			MethodName: "GetAll",

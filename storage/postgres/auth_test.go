@@ -85,9 +85,7 @@ func TestCheckRefreshTokenExists(t *testing.T) {
 	repo, err := setupRepo()
 	if err != nil {
 		t.Error(err)
-		return
 	}
-	repo.db.Exec(context.Background(), "DELETE FROM users WHERE phone_number = $1", "12345634890")
 	defer repo.db.Exec(context.Background(), "DELETE FROM refresh_tokens WHERE refresh_token = $1", "test-refresh-token")
 	defer repo.db.Exec(context.Background(), "DELETE FROM users WHERE phone_number = $1", "12345634890")
 
@@ -99,7 +97,6 @@ func TestCheckRefreshTokenExists(t *testing.T) {
 	user, err := repo.Create(context.Background(), &createReq)
 	if err != nil {
 		t.Error(err)
-		return
 	}
 
 	storeReq := pb.RefreshToken{
@@ -107,10 +104,10 @@ func TestCheckRefreshTokenExists(t *testing.T) {
 		RefreshToken: "test-refresh-token",
 		ExpiresAt:    time.Now().Add(time.Hour).Format(time.RFC3339),
 	}
+
 	_, err = repo.StoreRefreshToken(context.Background(), &storeReq)
 	if err != nil {
 		t.Error(err)
-		return
 	}
 
 	checkReq := pb.RequestRefreshToken{RefreshToken: "test-refresh-token"}

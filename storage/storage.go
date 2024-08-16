@@ -20,6 +20,7 @@ type IStorage interface {
 	Close()
 	Auth() IAuthStorage
 	Users() IUsersStorage
+	UserLocation() IUserLocationRepo
 }
 
 type IAuthStorage interface {
@@ -37,6 +38,15 @@ type IUsersStorage interface {
 	Delete(context.Context, *pb.PrimaryKey) (*pb.Void, error)
 	ChangeUserRole(context.Context, *pb.ChangeUserRole) (*pb.Void, error)
 	CheckUserIdExists(context.Context, *pb.PrimaryKey) (*pb.Void, error)
+}
+
+type IUserLocationRepo interface {
+	Create(context.Context, *pb.CreateUserLocation) (*pb.UserLocation, error)
+	GetById(context.Context, *pb.PrimaryKey) (*pb.UserLocation, error)
+	GetByUserId(context.Context, *pb.PrimaryKey) (*pb.UserLocation, error)
+	GetAll(context.Context, *pb.UserLocationFilter) (*pb.UserLocations, error)
+	Update(context.Context, *pb.UpdateUserLocation) (*pb.UserLocation, error)
+	Delete(context.Context, *pb.PrimaryKey) (*pb.Void, error)
 }
 
 func New(ctx context.Context, cfg *configs.Config, log *logger.ILogger) (IStorage, error) {
@@ -61,4 +71,8 @@ func (s *Storage) Auth() IAuthStorage {
 
 func (s *Storage) Users() IUsersStorage {
 	return postgres.NewUsersRepo(s.dbPostgres, s.log)
+}
+
+func (s *Storage) UserLocation() IUserLocationRepo{
+	return postgres.NewUserLoactionRepo(s.dbPostgres, s.log)
 }
