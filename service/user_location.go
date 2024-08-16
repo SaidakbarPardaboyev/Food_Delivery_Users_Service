@@ -40,7 +40,7 @@ func (s *userLocationService) GetById(ctx context.Context, req *pb.PrimaryKey) (
 }
 
 func (s *userLocationService) GetByUserId(ctx context.Context, req *pb.PrimaryKey) (*pb.UserLocation, error) {
-	res, err := s.storage.UserLocation().GetById(ctx, req)
+	res, err := s.storage.UserLocation().GetByUserId(ctx, req)
 	if err != nil {
 		s.log.Error("Error getting user location by ID", logger.Error(err))
 		return nil, err

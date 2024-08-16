@@ -257,6 +257,10 @@ func (u *userLocationRepo) GetAll(ctx context.Context, req *pb.UserLocationFilte
 
 	query += f
 	rows, err = u.db.Query(ctx, query, args...)
+	if err != nil {
+		u.log.Error("Error while getting user location by id in storage layer")
+		return nil, err
+	}
 
 	defer rows.Close()
 
@@ -317,8 +321,8 @@ func (u *userLocationRepo) Update(ctx context.Context, req *pb.UpdateUserLocatio
 		params["address"] = req.Address
 	}
 	if req.HomeNumber != "" {
-		query += " , address = @address"
-		params["address"] = req.Address
+		query += " , home_number = @home_number"
+		params["home_number"] = req.HomeNumber
 	}
 	if req.FloorNumber != 0 {
 		query += " , floor_number = @floor_number "
