@@ -153,14 +153,47 @@ func (w *workersOfBranchesService) GetAll(ctx context.Context, request *pb.Worke
 	return &resp, nil
 }
 
-func (w *workersOfBranchesService) Update(ctx context.Context, request *pb.Worker) (*pb.Worker, error) {
+func (w *workersOfBranchesService) Update(ctx context.Context, request *pb.UpdateWorker) (*pb.Worker, error) {
 
+	if _, err := w.clients.BranchesService().CheckBranchExist(ctx, &pbo.PrimaryKey{Id: request.BranchId}); err != nil {
+		w.log.Error("error while checking branch is exists in service layer", logger.Error(err))
+		return &pb.Worker{}, err
+	}
+
+	resp, branchId, err := w.storage.WorkersOfBranches().Update(ctx, request)
+	if err != nil {
+		w.log.Error("error while updating worker info in service layer", logger.Error(err))
+		return &pb.Worker{}, err
+	}
+
+	branch, err := w.clients.BranchesService().GetBranchTileById(ctx, &pbo.PrimaryKey{Id: branchId})
+	if err != nil {
+		w.log.Error("error while getting branch title from branches table in service layer", logger.Error(err))
+		return &pb.Worker{}, err
+	}
+	resp.BranchTitle = branch.Title
+
+	return resp, nil
 }
 
 func (w *workersOfBranchesService) Delete(ctx context.Context, request *pb.WorkerId) (*pb.Void, error) {
 
+	resp, err := w.storage.WorkersOfBranches().Delete(ctx, request)
+	if err != nil {
+		w.log.Error("error while deleting worker info in service layer", logger.Error(err))
+		return &pb.Void{}, err
+	}
+
+	return resp, nil
 }
 
 func (w *workersOfBranchesService) CheckWorkerExists(ctx context.Context, request *pb.WorkerId) (*pb.Void, error) {
 
+	resp, err := w.storage.WorkersOfBranches().CheckWorkerExists(ctx, request)
+	if err != nil {
+		w.log.Error("error while checking worker id is exists in service layer", logger.Error(err))
+		return &pb.Void{}, err
+	}
+
+	return resp, nil
 }

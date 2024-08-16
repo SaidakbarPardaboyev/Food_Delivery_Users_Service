@@ -26,7 +26,7 @@ type WorkersOfBranchesServiceClient interface {
 	GetByUUID(ctx context.Context, in *PrimaryKey, opts ...grpc.CallOption) (*Worker, error)
 	GetByWorkerId(ctx context.Context, in *WorkerId, opts ...grpc.CallOption) (*Worker, error)
 	GetAll(ctx context.Context, in *WorkerFilter, opts ...grpc.CallOption) (*Workers, error)
-	Update(ctx context.Context, in *Worker, opts ...grpc.CallOption) (*Worker, error)
+	Update(ctx context.Context, in *UpdateWorker, opts ...grpc.CallOption) (*Worker, error)
 	Delete(ctx context.Context, in *WorkerId, opts ...grpc.CallOption) (*Void, error)
 	CheckWorkerExists(ctx context.Context, in *WorkerId, opts ...grpc.CallOption) (*Void, error)
 }
@@ -75,7 +75,7 @@ func (c *workersOfBranchesServiceClient) GetAll(ctx context.Context, in *WorkerF
 	return out, nil
 }
 
-func (c *workersOfBranchesServiceClient) Update(ctx context.Context, in *Worker, opts ...grpc.CallOption) (*Worker, error) {
+func (c *workersOfBranchesServiceClient) Update(ctx context.Context, in *UpdateWorker, opts ...grpc.CallOption) (*Worker, error) {
 	out := new(Worker)
 	err := c.cc.Invoke(ctx, "/users.WorkersOfBranchesService/Update", in, out, opts...)
 	if err != nil {
@@ -110,7 +110,7 @@ type WorkersOfBranchesServiceServer interface {
 	GetByUUID(context.Context, *PrimaryKey) (*Worker, error)
 	GetByWorkerId(context.Context, *WorkerId) (*Worker, error)
 	GetAll(context.Context, *WorkerFilter) (*Workers, error)
-	Update(context.Context, *Worker) (*Worker, error)
+	Update(context.Context, *UpdateWorker) (*Worker, error)
 	Delete(context.Context, *WorkerId) (*Void, error)
 	CheckWorkerExists(context.Context, *WorkerId) (*Void, error)
 	mustEmbedUnimplementedWorkersOfBranchesServiceServer()
@@ -132,7 +132,7 @@ func (UnimplementedWorkersOfBranchesServiceServer) GetByWorkerId(context.Context
 func (UnimplementedWorkersOfBranchesServiceServer) GetAll(context.Context, *WorkerFilter) (*Workers, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAll not implemented")
 }
-func (UnimplementedWorkersOfBranchesServiceServer) Update(context.Context, *Worker) (*Worker, error) {
+func (UnimplementedWorkersOfBranchesServiceServer) Update(context.Context, *UpdateWorker) (*Worker, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
 }
 func (UnimplementedWorkersOfBranchesServiceServer) Delete(context.Context, *WorkerId) (*Void, error) {
@@ -228,7 +228,7 @@ func _WorkersOfBranchesService_GetAll_Handler(srv interface{}, ctx context.Conte
 }
 
 func _WorkersOfBranchesService_Update_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Worker)
+	in := new(UpdateWorker)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -240,7 +240,7 @@ func _WorkersOfBranchesService_Update_Handler(srv interface{}, ctx context.Conte
 		FullMethod: "/users.WorkersOfBranchesService/Update",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(WorkersOfBranchesServiceServer).Update(ctx, req.(*Worker))
+		return srv.(WorkersOfBranchesServiceServer).Update(ctx, req.(*UpdateWorker))
 	}
 	return interceptor(ctx, in, info, handler)
 }

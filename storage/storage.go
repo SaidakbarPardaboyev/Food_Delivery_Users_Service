@@ -45,7 +45,7 @@ type IWorkersOfBranches interface {
 	GetByUUID(ctx context.Context, request *pb.PrimaryKey) (*pb.Worker, string, error)
 	GetByWorkerId(ctx context.Context, request *pb.WorkerId) (*pb.Worker, string, error)
 	GetAll(ctx context.Context, request *pb.WorkerFilter) (*pb.Workers, []string, error)
-	Update(ctx context.Context, request *pb.Worker) (*pb.Worker, error)
+	Update(ctx context.Context, request *pb.UpdateWorker) (*pb.Worker, string, error)
 	Delete(ctx context.Context, request *pb.WorkerId) (*pb.Void, error)
 	CheckWorkerExists(ctx context.Context, request *pb.WorkerId) (*pb.Void, error)
 }

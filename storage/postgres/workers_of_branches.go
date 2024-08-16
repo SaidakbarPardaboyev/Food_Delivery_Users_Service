@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"time"
 	"users_service/pkg/helper"
 	"users_service/pkg/logger"
@@ -245,14 +246,189 @@ func (w *workersOfBranchesRepo) GetAll(ctx context.Context, request *pb.WorkerFi
 	return &workers, branchIds, nil
 }
 
-// func (w *workersOfBranchesRepo) Update(ctx context.Context, request *pb.Worker) (*pb.Worker, error) {
+func (w *workersOfBranchesRepo) Update(ctx context.Context, request *pb.UpdateWorker) (*pb.Worker, string, error) {
 
-// }
+	var (
+		worker      pb.Worker
+		queryUser   = ` update users set `
+		queryWorker = ` update workers_of_branches set `
+		branchId    string
+		err         error
+		birthday    time.Time
+		filter      = ""
+		params      = make(map[string]interface{})
+		createdAt   time.Time
+		updatedAt   sql.NullTime
+	)
 
-// func (w *workersOfBranchesRepo) Delete(ctx context.Context, request *pb.WorkerId) (*pb.Void, error) {
+	tx, err := w.db.Begin(ctx)
+	if err != nil {
+		return &pb.Worker{}, "", err
+	}
+	defer tx.Commit(ctx)
 
-// }
+	params["id"] = request.GetId()
 
-// func (w *workersOfBranchesRepo) CheckWorkerExists(ctx context.Context, request *pb.WorkerId) (*pb.Void, error) {
+	if request.GetPhoneNumber() != "" {
+		filter += ` phone_number = @phone_number, `
+		params["phone_number"] = request.GetPhoneNumber()
+	}
 
-// }
+	if request.GetFullName() != "" {
+		filter += ` full_name = @full_name, `
+		params["full_name"] = request.GetFullName()
+	}
+
+	if request.GetBirthday() != "" {
+		filter += ` birthday = @birthday, `
+		params["birthday"] = request.GetBirthday()
+	}
+
+	if request.GetUserRole() != "" {
+		filter += ` user_role = @user_role, `
+		params["user_role"] = request.GetUserRole()
+	}
+
+	queryUser += filter + ` updated_at = now() where id = @id and deleted_at is null returning 
+		id,
+		phone_number,
+		full_name,
+		birthday,
+		user_role
+	`
+
+	fullQuery, args := helper.ReplaceQueryParams(queryUser, params)
+
+	if err = tx.QueryRow(ctx, fullQuery, args...).Scan(
+		&worker.Id,
+		&worker.PhoneNumber,
+		&worker.FullName,
+		&birthday,
+		&worker.UserRole,
+	); err != nil {
+		tx.Rollback(ctx)
+		w.log.Error("error while updating worker info in users table", logger.Error(err))
+		return &pb.Worker{}, "", err
+	}
+	worker.Birthday = birthday.Format("02.01.2006")
+
+	filter = ""
+	params = make(map[string]interface{})
+
+	if request.GetWorkerId() == "" {
+		tx.Rollback(ctx)
+		w.log.Error("error: worker id is requered")
+		return &pb.Worker{}, "", fmt.Errorf("error: worker id is requered")
+	}
+
+	params["worker_id"] = request.GetWorkerId()
+
+	if request.GetBranchId() != "" {
+		filter += ` branch_id = @branch_id, `
+		params["branch_id"] = request.GetBranchId()
+	}
+
+	queryWorker += filter + ` updated_at = now() where worker_id = @worker_id and deleted_at is null returning
+		worker_id,
+		branch_id,
+		created_at,
+		updated_at `
+
+	fullQuery, args = helper.ReplaceQueryParams(queryWorker, params)
+	if err = tx.QueryRow(ctx, fullQuery, args...).Scan(
+		&worker.WorkerId,
+		&branchId,
+		&createdAt,
+		&updatedAt,
+	); err != nil {
+		tx.Rollback(ctx)
+		w.log.Error("error while updating worker info in workers_of_branches table", logger.Error(err))
+		return &pb.Worker{}, "", err
+	}
+
+	worker.CreatedAt = createdAt.Format(Layout)
+
+	if updatedAt.Valid {
+		worker.UpdatedAt = updatedAt.Time.Format(Layout)
+	}
+
+	return &worker, branchId, nil
+}
+
+func (w *workersOfBranchesRepo) Delete(ctx context.Context, request *pb.WorkerId) (*pb.Void, error) {
+
+	var (
+		queryUser   string
+		queryWorker string
+		err         error
+		userId      string
+	)
+
+	tx, err := w.db.Begin(ctx)
+	if err != nil {
+		tx.Rollback(ctx)
+		w.log.Error("error while creating transaction", logger.Error(err))
+		return &pb.Void{}, err
+	}
+	defer tx.Commit(ctx)
+
+	queryWorker = `
+		update
+			workers_of_branches
+		set
+			deleted_at = now()
+		where
+			worker_id = $1 and
+			deleted_at is null 
+		returning
+			user_id `
+
+	if err = tx.QueryRow(ctx, queryWorker, request.GetWorkerId()).Scan(&userId); err != nil {
+		tx.Rollback(ctx)
+		w.log.Error("error while deleting worker info from workers_of_branches table", logger.Error(err))
+		return &pb.Void{}, err
+	}
+
+	queryUser = `
+		update
+			users
+		set
+			deleted_at = now()
+		where
+			id = $1 and
+			deleted_at is null `
+
+	if _, err = tx.Exec(ctx, queryUser, userId); err != nil {
+		tx.Rollback(ctx)
+		w.log.Error("error while deleting worker info from users table", logger.Error(err))
+		return &pb.Void{}, err
+	}
+
+	return &pb.Void{}, nil
+}
+
+func (w *workersOfBranchesRepo) CheckWorkerExists(ctx context.Context, request *pb.WorkerId) (*pb.Void, error) {
+
+	var (
+		exist int
+		query string
+		err   error
+	)
+
+	query = `
+		select
+			1
+		from
+			workers_of_branches
+		where 
+			worker_id = $1 and 
+			deleted_at is null `
+
+	err = w.db.QueryRow(ctx, query, request.GetWorkerId()).Scan(&exist)
+
+	if err != nil && err.Error() == "no rows in result set" {
+		return &pb.Void{}, fmt.Errorf("error: worker not found")
+	}
+
+	return &pb.Void{}, nil
+}

@@ -3,7 +3,6 @@ package postgres
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 	"users_service/pkg/helper"
 	"users_service/pkg/logger"
@@ -277,17 +276,14 @@ func (u *usersRepo) CheckUserIdExists(ctx context.Context, request *pb.PrimaryKe
 		from
 			users
 		where 
-			id = $1`
+			id = $1 and 
+			deleted_at is null `
 
 	err = u.db.QueryRow(ctx, query, request.GetId()).Scan(&exist)
 
-	if err.Error() == "no rows in result set" {
-		return &pb.Void{}, errors.New("user does not exists")
+	if err != nil && err.Error() == "no rows in result set" {
+		return &pb.Void{}, fmt.Errorf("error: user not found")
 	}
 
-	if err != nil {
-		return &pb.Void{}, err
-	}
-
-	return &pb.Void{}, nil
+	return &pb.Void{}, err
 }

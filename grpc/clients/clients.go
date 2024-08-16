@@ -5,6 +5,7 @@ import (
 	pb "users_service/genproto/orders_service"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 type IClientsMeneger interface {
@@ -17,7 +18,7 @@ type grpcClients struct {
 
 func NewClients(cfg *configs.Config) (IClientsMeneger, error) {
 
-	connOrderService, err := grpc.NewClient(cfg.OrdersServiceGrpcHost + cfg.OrdersServiceGrpcPort)
+	connOrderService, err := grpc.NewClient(cfg.OrdersServiceGrpcHost + cfg.OrdersServiceGrpcPort, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, err
 	}

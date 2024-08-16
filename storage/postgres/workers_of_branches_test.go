@@ -85,3 +85,57 @@ func TestGetAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
+func TestUpdate(t *testing.T) {
+	repo, err := NewWorkersOfBranchesRepoTest()
+	if err != nil {
+		t.Error(err)
+	}
+
+	request := pb.UpdateWorker{
+		Id:          "4f4d8d9c-8f30-425e-917a-c7d8d7449959",
+		PhoneNumber: "+998997693733",
+		FullName:    "Akbar",
+		Birthday:    "18-08-2006",
+		UserRole:    "chief",
+		BranchId:    "64a5471a-8d82-4589-a2cc-20c8dfe5e7ab",
+		WorkerId:    "1001",
+	}
+
+	_, _, err = repo.Update(context.Background(), &request)
+	if err != nil {
+		t.Error(err)
+	}
+}
+
+func TestDelete(t *testing.T) {
+	repo, err := NewWorkersOfBranchesRepoTest()
+	if err != nil {
+		t.Error(err)
+	}
+
+	request := pb.WorkerId{
+		WorkerId: "1002",
+	}
+
+	_, err = repo.Delete(context.Background(), &request)
+	if err != nil {
+		t.Error(err)
+	}
+}
+
+func TestCheckWorkerExists(t *testing.T) {
+	repo, err := NewWorkersOfBranchesRepoTest()
+	if err != nil {
+		t.Error(err)
+	}
+
+	request := pb.WorkerId{
+		WorkerId: "1000",
+	}
+
+	_, err = repo.CheckWorkerExists(context.Background(), &request)
+	if err != nil {
+		t.Error(err)
+	}
+}
