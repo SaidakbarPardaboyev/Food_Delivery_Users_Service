@@ -82,7 +82,8 @@ func (a *authRepo) GetByPhone(ctx context.Context, request *pb.Phone) (*pb.User,
 		phone_number,
 		full_name,
 		user_role,
-		created_at
+		created_at,
+		updated_at
 	from 
 		users 
 	where

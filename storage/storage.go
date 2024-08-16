@@ -21,6 +21,7 @@ type IStorage interface {
 	Auth() IAuthStorage
 	Users() IUsersStorage
 	WorkersOfBranches() IWorkersOfBranches
+	UserLocation() IUserLocationRepo
 }
 
 type IAuthStorage interface {
@@ -50,6 +51,15 @@ type IWorkersOfBranches interface {
 	CheckWorkerExists(ctx context.Context, request *pb.WorkerId) (*pb.Void, error)
 }
 
+type IUserLocationRepo interface {
+	Create(context.Context, *pb.CreateUserLocation) (*pb.UserLocation, error)
+	GetById(context.Context, *pb.PrimaryKey) (*pb.UserLocation, error)
+	GetByUserId(context.Context, *pb.PrimaryKey) (*pb.UserLocation, error)
+	GetAll(context.Context, *pb.UserLocationFilter) (*pb.UserLocations, error)
+	Update(context.Context, *pb.UpdateUserLocation) (*pb.UserLocation, error)
+	Delete(context.Context, *pb.PrimaryKey) (*pb.Void, error)
+}
+
 func New(ctx context.Context, cfg *configs.Config, log *logger.ILogger) (IStorage, error) {
 	dbPostgres, err := postgres.ConnectDB(ctx, cfg)
 	if err != nil {
@@ -76,4 +86,8 @@ func (s *Storage) Users() IUsersStorage {
 
 func (s *Storage) WorkersOfBranches() IWorkersOfBranches {
 	return postgres.NewWorkersOfBranchesRepo(s.dbPostgres, s.log)
+}
+
+func (s *Storage) UserLocation() IUserLocationRepo {
+	return postgres.NewUserLoactionRepo(s.dbPostgres, s.log)
 }

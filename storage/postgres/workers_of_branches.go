@@ -180,7 +180,6 @@ func (w *workersOfBranchesRepo) GetAll(ctx context.Context, request *pb.WorkerFi
 		err       error
 		filter    = ""
 		params    = make(map[string]interface{})
-		offset    = int(request.GetPage()-1) * int(request.GetLimit())
 		createdAt time.Time
 		updatedAt sql.NullTime
 	)
@@ -201,9 +200,7 @@ func (w *workersOfBranchesRepo) GetAll(ctx context.Context, request *pb.WorkerFi
 		params["branch_id"] = request.GetBranchId()
 	}
 
-	query += filter + ` deleted_at is null limit @limit offset @offset `
-	params["limit"] = request.GetLimit()
-	params["offset"] = offset
+	query += filter + ` deleted_at is null `
 
 	fullQuery, args := helper.ReplaceQueryParams(query, params)
 

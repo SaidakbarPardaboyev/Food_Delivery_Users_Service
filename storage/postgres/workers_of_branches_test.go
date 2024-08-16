@@ -19,7 +19,7 @@ func NewWorkersOfBranchesRepoTest() (*workersOfBranchesRepo, error) {
 	return NewWorkersOfBranchesRepo(db, log), nil
 }
 
-func TestCreate(t *testing.T) {
+func TestCreateWorker(t *testing.T) {
 	repo, err := NewWorkersOfBranchesRepoTest()
 	if err != nil {
 		t.Error(err)
@@ -39,7 +39,7 @@ func TestCreate(t *testing.T) {
 	}
 }
 
-func TestGetByUUID(t *testing.T) {
+func TestGetWorkerByUUID(t *testing.T) {
 	repo, err := NewWorkersOfBranchesRepoTest()
 	if err != nil {
 		t.Error(err)
@@ -53,7 +53,7 @@ func TestGetByUUID(t *testing.T) {
 	}
 }
 
-func TestGetByWorkerId(t *testing.T) {
+func TestGetWorkerByWorkerId(t *testing.T) {
 	repo, err := NewWorkersOfBranchesRepoTest()
 	if err != nil {
 		t.Error(err)
@@ -67,7 +67,7 @@ func TestGetByWorkerId(t *testing.T) {
 	}
 }
 
-func TestGetAll(t *testing.T) {
+func TestGetAllWorker(t *testing.T) {
 	repo, err := NewWorkersOfBranchesRepoTest()
 	if err != nil {
 		t.Error(err)
@@ -86,7 +86,7 @@ func TestGetAll(t *testing.T) {
 	}
 }
 
-func TestUpdate(t *testing.T) {
+func TestUpdateWorker(t *testing.T) {
 	repo, err := NewWorkersOfBranchesRepoTest()
 	if err != nil {
 		t.Error(err)
@@ -108,7 +108,7 @@ func TestUpdate(t *testing.T) {
 	}
 }
 
-func TestDelete(t *testing.T) {
+func TestDeleteWorker(t *testing.T) {
 	repo, err := NewWorkersOfBranchesRepoTest()
 	if err != nil {
 		t.Error(err)

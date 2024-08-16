@@ -19,13 +19,14 @@ type workersOfBranchesService struct {
 func NewWorkersOfBranchesService(storage storage.IStorage, clients clients.IClientsMeneger, log logger.ILogger) *workersOfBranchesService {
 	return &workersOfBranchesService{
 		storage: storage,
+		clients: clients,
 		log:     log,
 	}
 }
 
 func (w *workersOfBranchesService) Create(ctx context.Context, request *pb.CreateWorker) (*pb.WorkerId, error) {
 
-	if _, err := w.clients.BranchesService().CheckBranchExist(ctx, &pbo.PrimaryKey{Id: request.BranchId}); err != nil {
+	if _, err := w.clients.BranchesService().CheckBranchExist(ctx, &pbo.PrimaryKey{Id: request.GetBranchId()}); err != nil {
 		w.log.Error("error while checking branch is exists in service layer", logger.Error(err))
 		return &pb.WorkerId{}, err
 	}
@@ -53,7 +54,7 @@ func (w *workersOfBranchesService) GetByUUID(ctx context.Context, request *pb.Pr
 		return &pb.Worker{}, err
 	}
 
-	branch, err := w.clients.BranchesService().GetBranchTileById(ctx, &pbo.PrimaryKey{Id: branchId})
+	branch, err := w.clients.BranchesService().GetBranchTitleById(ctx, &pbo.PrimaryKey{Id: branchId})
 	if err != nil {
 		w.log.Error("error while getting branch title from branches tablein service layer", logger.Error(err))
 		return &pb.Worker{}, err
@@ -86,7 +87,7 @@ func (w *workersOfBranchesService) GetByWorkerId(ctx context.Context, request *p
 		return &pb.Worker{}, err
 	}
 
-	branch, err := w.clients.BranchesService().GetBranchTileById(ctx, &pbo.PrimaryKey{Id: branchId})
+	branch, err := w.clients.BranchesService().GetBranchTitleById(ctx, &pbo.PrimaryKey{Id: branchId})
 	if err != nil {
 		w.log.Error("error while getting branch title from branches table in service layer", logger.Error(err))
 		return &pb.Worker{}, err
@@ -113,7 +114,11 @@ func (w *workersOfBranchesService) GetAll(ctx context.Context, request *pb.Worke
 		return &pb.Workers{}, err
 	}
 
-	resp := pb.Workers{}
+	var (
+		resp        = pb.Workers{}
+		offset      = (int(request.GetPage()-1) * int(request.GetLimit()))
+		offsetCount = 0
+	)
 
 	for ind, val := range workers.Workers {
 		user, err := w.storage.Users().GetById(ctx, &pb.PrimaryKey{Id: val.Id})
@@ -122,17 +127,19 @@ func (w *workersOfBranchesService) GetAll(ctx context.Context, request *pb.Worke
 			return &pb.Workers{}, err
 		}
 
-		if request.UserRole == "" {
+		if request.UserRole != "" && request.UserRole != user.UserRole {
 			continue
 		}
 
-		branch, err := w.clients.BranchesService().GetBranchTileById(ctx, &pbo.PrimaryKey{Id: branches[ind]})
+		branch, err := w.clients.BranchesService().GetBranchTitleById(ctx, &pbo.PrimaryKey{Id: branches[ind]})
 		if err != nil {
 			w.log.Error("error while getting branch title from branches table in service layer", logger.Error(err))
 			return &pb.Workers{}, err
 		}
 
-		if len(resp.Workers) < (int(request.GetPage()-1) * int(request.GetLimit())) {
+		if offsetCount < offset {
+			offsetCount++
+		} else if len(resp.Workers) < int(request.GetLimit()) {
 			worker := &pb.Worker{
 				Id:          val.Id,
 				WorkerId:    val.WorkerId,
@@ -166,7 +173,7 @@ func (w *workersOfBranchesService) Update(ctx context.Context, request *pb.Updat
 		return &pb.Worker{}, err
 	}
 
-	branch, err := w.clients.BranchesService().GetBranchTileById(ctx, &pbo.PrimaryKey{Id: branchId})
+	branch, err := w.clients.BranchesService().GetBranchTitleById(ctx, &pbo.PrimaryKey{Id: branchId})
 	if err != nil {
 		w.log.Error("error while getting branch title from branches table in service layer", logger.Error(err))
 		return &pb.Worker{}, err

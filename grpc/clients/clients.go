@@ -18,7 +18,9 @@ type grpcClients struct {
 
 func NewClients(cfg *configs.Config) (IClientsMeneger, error) {
 
-	connOrderService, err := grpc.NewClient(cfg.OrdersServiceGrpcHost + cfg.OrdersServiceGrpcPort, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	connOrderService, err := grpc.NewClient(
+		cfg.OrdersServiceGrpcHost+cfg.OrdersServiceGrpcPort,
+		grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, err
 	}

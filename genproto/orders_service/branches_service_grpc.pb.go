@@ -28,7 +28,7 @@ type BranchesServiceClient interface {
 	Update(ctx context.Context, in *Branch, opts ...grpc.CallOption) (*Branch, error)
 	Delete(ctx context.Context, in *PrimaryKey, opts ...grpc.CallOption) (*Void, error)
 	CheckBranchExist(ctx context.Context, in *PrimaryKey, opts ...grpc.CallOption) (*Void, error)
-	GetBranchTileById(ctx context.Context, in *PrimaryKey, opts ...grpc.CallOption) (*BranchTitle, error)
+	GetBranchTitleById(ctx context.Context, in *PrimaryKey, opts ...grpc.CallOption) (*BranchTitle, error)
 }
 
 type branchesServiceClient struct {
@@ -93,9 +93,9 @@ func (c *branchesServiceClient) CheckBranchExist(ctx context.Context, in *Primar
 	return out, nil
 }
 
-func (c *branchesServiceClient) GetBranchTileById(ctx context.Context, in *PrimaryKey, opts ...grpc.CallOption) (*BranchTitle, error) {
+func (c *branchesServiceClient) GetBranchTitleById(ctx context.Context, in *PrimaryKey, opts ...grpc.CallOption) (*BranchTitle, error) {
 	out := new(BranchTitle)
-	err := c.cc.Invoke(ctx, "/orders_service.branches_service/GetBranchTileById", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/orders_service.branches_service/GetBranchTitleById", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -112,7 +112,7 @@ type BranchesServiceServer interface {
 	Update(context.Context, *Branch) (*Branch, error)
 	Delete(context.Context, *PrimaryKey) (*Void, error)
 	CheckBranchExist(context.Context, *PrimaryKey) (*Void, error)
-	GetBranchTileById(context.Context, *PrimaryKey) (*BranchTitle, error)
+	GetBranchTitleById(context.Context, *PrimaryKey) (*BranchTitle, error)
 	mustEmbedUnimplementedBranchesServiceServer()
 }
 
@@ -138,8 +138,8 @@ func (UnimplementedBranchesServiceServer) Delete(context.Context, *PrimaryKey) (
 func (UnimplementedBranchesServiceServer) CheckBranchExist(context.Context, *PrimaryKey) (*Void, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CheckBranchExist not implemented")
 }
-func (UnimplementedBranchesServiceServer) GetBranchTileById(context.Context, *PrimaryKey) (*BranchTitle, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetBranchTileById not implemented")
+func (UnimplementedBranchesServiceServer) GetBranchTitleById(context.Context, *PrimaryKey) (*BranchTitle, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetBranchTitleById not implemented")
 }
 func (UnimplementedBranchesServiceServer) mustEmbedUnimplementedBranchesServiceServer() {}
 
@@ -262,20 +262,20 @@ func _BranchesService_CheckBranchExist_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
-func _BranchesService_GetBranchTileById_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _BranchesService_GetBranchTitleById_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(PrimaryKey)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(BranchesServiceServer).GetBranchTileById(ctx, in)
+		return srv.(BranchesServiceServer).GetBranchTitleById(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/orders_service.branches_service/GetBranchTileById",
+		FullMethod: "/orders_service.branches_service/GetBranchTitleById",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BranchesServiceServer).GetBranchTileById(ctx, req.(*PrimaryKey))
+		return srv.(BranchesServiceServer).GetBranchTitleById(ctx, req.(*PrimaryKey))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -312,8 +312,8 @@ var BranchesService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _BranchesService_CheckBranchExist_Handler,
 		},
 		{
-			MethodName: "GetBranchTileById",
-			Handler:    _BranchesService_GetBranchTileById_Handler,
+			MethodName: "GetBranchTitleById",
+			Handler:    _BranchesService_GetBranchTitleById_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

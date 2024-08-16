@@ -30,6 +30,7 @@ func (u *usersRepo) GetById(ctx context.Context, request *pb.PrimaryKey) (*pb.Us
 		user      = pb.User{}
 		query     string
 		err       error
+		birthday  sql.NullTime
 		createdAt sql.NullTime
 		updatedAt sql.NullTime
 	)
@@ -37,6 +38,7 @@ func (u *usersRepo) GetById(ctx context.Context, request *pb.PrimaryKey) (*pb.Us
 	query = `select
 		id,
 		full_name,
+		birthday,
 		phone_number,
 		user_role,
 		created_at,
@@ -53,6 +55,7 @@ func (u *usersRepo) GetById(ctx context.Context, request *pb.PrimaryKey) (*pb.Us
 		Scan(
 			&user.Id,
 			&user.FullName,
+			&birthday,
 			&user.PhoneNumber,
 			&user.UserRole,
 			&createdAt,
@@ -62,6 +65,9 @@ func (u *usersRepo) GetById(ctx context.Context, request *pb.PrimaryKey) (*pb.Us
 		return nil, err
 	}
 
+	if birthday.Valid {
+		user.Birthday = birthday.Time.Format(Layout)
+	}
 	if createdAt.Valid {
 		user.CreatedAt = createdAt.Time.Format(Layout)
 	}
@@ -82,6 +88,7 @@ func (u *usersRepo) GetAll(ctx context.Context, request *pb.GetListRequest) (*pb
 		params            = make(map[string]interface{})
 		err               error
 		count             int
+		birthday          sql.NullTime
 		createdAt         sql.NullTime
 		updatedAt         sql.NullTime
 	)
@@ -116,6 +123,7 @@ func (u *usersRepo) GetAll(ctx context.Context, request *pb.GetListRequest) (*pb
 		id,
 		phone_number,
 		full_name,
+		birthday,
 		user_role,
 		created_at,
 		updated_at
@@ -143,12 +151,16 @@ func (u *usersRepo) GetAll(ctx context.Context, request *pb.GetListRequest) (*pb
 			&user.Id,
 			&user.PhoneNumber,
 			&user.FullName,
+			&birthday,
 			&user.UserRole,
 			&createdAt,
 			&updatedAt,
 		); err != nil {
 			u.log.Error("error while getting user info in storage layer", logger.Error(err))
 			return nil, err
+		}
+		if birthday.Valid {
+			user.Birthday = birthday.Time.Format(Layout)
 		}
 		if createdAt.Valid {
 			user.CreatedAt = createdAt.Time.Format(Layout)
@@ -180,6 +192,7 @@ func (u *usersRepo) Update(ctx context.Context, request *pb.UpdateUser) (*pb.Use
 		filter    = ""
 		query     = ` update users set `
 		err       error
+		birthday  sql.NullTime
 		createdAt sql.NullTime
 		updatedAt sql.NullTime
 	)
@@ -200,6 +213,7 @@ func (u *usersRepo) Update(ctx context.Context, request *pb.UpdateUser) (*pb.Use
 		id,
 		full_name,
 		phone_number,
+		birthday,
 		user_role,
 		created_at,
 		updated_at
@@ -209,6 +223,7 @@ func (u *usersRepo) Update(ctx context.Context, request *pb.UpdateUser) (*pb.Use
 		&user.Id,
 		&user.FullName,
 		&user.PhoneNumber,
+		&birthday,
 		&user.UserRole,
 		&createdAt,
 		&updatedAt,
@@ -216,7 +231,9 @@ func (u *usersRepo) Update(ctx context.Context, request *pb.UpdateUser) (*pb.Use
 		u.log.Error("error while updating user info in storage layer", logger.Error(err))
 		return nil, err
 	}
-
+	if birthday.Valid {
+		user.Birthday = birthday.Time.Format(Layout)
+	}
 	if createdAt.Valid {
 		user.CreatedAt = createdAt.Time.Format(Layout)
 	}
