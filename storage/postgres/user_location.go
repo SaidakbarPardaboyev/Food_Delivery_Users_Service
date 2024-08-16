@@ -265,7 +265,7 @@ func (u *userLocationRepo) GetAll(ctx context.Context, req *pb.UserLocationFilte
 	defer rows.Close()
 
 	for rows.Next() {
-		rows.Scan(
+		err = rows.Scan(
 			&userLocation.Id,
 			&userLocation.UserId,
 			&userLocation.Address,
