@@ -74,3 +74,12 @@ func (s *userLocationService) Delete(ctx context.Context, req *pb.PrimaryKey) (*
 	}
 	return &pb.Void{}, nil
 }
+
+func (s *userLocationService) ValidateId(ctx context.Context, request *pb.PrimaryKey) (*pb.Void, error) {
+
+	if _, err := s.storage.UserLocation().ValidateId(ctx, request); err != nil {
+		s.log.Error("Error validating user location", logger.Error(err))
+		return nil, err
+	}
+	return &pb.Void{}, nil
+}
