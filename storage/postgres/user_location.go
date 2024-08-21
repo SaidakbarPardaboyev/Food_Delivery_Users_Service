@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"time"
 	"users_service/pkg/helper"
 	"users_service/pkg/logger"
@@ -399,4 +400,31 @@ func (u *userLocationRepo) Delete(ctx context.Context, req *pb.PrimaryKey) (*pb.
 	_, err := u.db.Exec(ctx, ` update user_locations set deleted_at = now() where id = $1`, req.GetId())
 
 	return &pb.Void{}, err
+}
+
+func (u *userLocationRepo) ValidateId(ctx context.Context, request *pb.PrimaryKey) (*pb.Void, error) {
+
+	var (
+		exist int
+		query string
+		err   error
+	)
+
+	query = `
+		select
+			1
+		from
+			user_locations
+		where 
+			id = $1 and 
+			deleted_at is null `
+
+	err = u.db.QueryRow(ctx, query, request.GetId()).Scan(&exist)
+
+	if err != nil && err.Error() == "no rows in result set" {
+		return &pb.Void{}, fmt.Errorf("error: user location not found")
+	}
+
+	return &pb.Void{}, err
+
 }

@@ -28,6 +28,7 @@ type UserLocationServiceClient interface {
 	GetAll(ctx context.Context, in *UserLocationFilter, opts ...grpc.CallOption) (*UserLocations, error)
 	Update(ctx context.Context, in *UpdateUserLocation, opts ...grpc.CallOption) (*UserLocation, error)
 	Delete(ctx context.Context, in *PrimaryKey, opts ...grpc.CallOption) (*Void, error)
+	ValidateId(ctx context.Context, in *PrimaryKey, opts ...grpc.CallOption) (*Void, error)
 }
 
 type userLocationServiceClient struct {
@@ -92,6 +93,15 @@ func (c *userLocationServiceClient) Delete(ctx context.Context, in *PrimaryKey, 
 	return out, nil
 }
 
+func (c *userLocationServiceClient) ValidateId(ctx context.Context, in *PrimaryKey, opts ...grpc.CallOption) (*Void, error) {
+	out := new(Void)
+	err := c.cc.Invoke(ctx, "/users.UserLocationService/ValidateId", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserLocationServiceServer is the server API for UserLocationService service.
 // All implementations must embed UnimplementedUserLocationServiceServer
 // for forward compatibility
@@ -102,6 +112,7 @@ type UserLocationServiceServer interface {
 	GetAll(context.Context, *UserLocationFilter) (*UserLocations, error)
 	Update(context.Context, *UpdateUserLocation) (*UserLocation, error)
 	Delete(context.Context, *PrimaryKey) (*Void, error)
+	ValidateId(context.Context, *PrimaryKey) (*Void, error)
 	mustEmbedUnimplementedUserLocationServiceServer()
 }
 
@@ -126,6 +137,9 @@ func (UnimplementedUserLocationServiceServer) Update(context.Context, *UpdateUse
 }
 func (UnimplementedUserLocationServiceServer) Delete(context.Context, *PrimaryKey) (*Void, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedUserLocationServiceServer) ValidateId(context.Context, *PrimaryKey) (*Void, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ValidateId not implemented")
 }
 func (UnimplementedUserLocationServiceServer) mustEmbedUnimplementedUserLocationServiceServer() {}
 
@@ -248,6 +262,24 @@ func _UserLocationService_Delete_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserLocationService_ValidateId_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PrimaryKey)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserLocationServiceServer).ValidateId(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/users.UserLocationService/ValidateId",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserLocationServiceServer).ValidateId(ctx, req.(*PrimaryKey))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // UserLocationService_ServiceDesc is the grpc.ServiceDesc for UserLocationService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -278,6 +310,10 @@ var UserLocationService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Delete",
 			Handler:    _UserLocationService_Delete_Handler,
+		},
+		{
+			MethodName: "ValidateId",
+			Handler:    _UserLocationService_ValidateId_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

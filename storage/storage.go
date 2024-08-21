@@ -58,6 +58,7 @@ type IUserLocationRepo interface {
 	GetAll(context.Context, *pb.UserLocationFilter) (*pb.UserLocations, error)
 	Update(context.Context, *pb.UpdateUserLocation) (*pb.UserLocation, error)
 	Delete(context.Context, *pb.PrimaryKey) (*pb.Void, error)
+	ValidateId(ctx context.Context, request *pb.PrimaryKey) (*pb.Void, error)
 }
 
 func New(ctx context.Context, cfg *configs.Config, log *logger.ILogger) (IStorage, error) {
